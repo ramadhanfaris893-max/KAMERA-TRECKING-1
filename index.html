@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#090b18">
+<title>GestureAI — Smart AI Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070914;--panel:rgba(18,22,42,.72);--panel2:rgba(24,29,54,.82);--line:rgba(255,255,255,.10);--text:#f5f7ff;--muted:#9da6c4;--cyan:#64e8ff;--purple:#9d7cff;--pink:#ff6f91;--green:#62e6a8;--yellow:#ffe56b;--shadow:0 24px 70px rgba(0,0,0,.42)}
+body.light{--panel:rgba(255,255,255,.78);--panel2:rgba(255,255,255,.92);--line:rgba(20,30,80,.12);--text:#0f1530;--muted:#55607f}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'Plus Jakarta Sans',Inter,'Segoe UI',system-ui,sans-serif;color:var(--text);background:linear-gradient(135deg,#060812,#0d1021 52%,#080a16);overflow-x:hidden}
+body.light{background:linear-gradient(135deg,#eaf1ff,#f6f0ff)}
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.aurora i{position:absolute;width:46vmax;height:46vmax;border-radius:50%;filter:blur(90px);opacity:.28;animation:drift 18s ease-in-out infinite alternate}
+.aurora i:nth-child(1){background:var(--cyan);left:-12vmax;top:-12vmax}
+.aurora i:nth-child(2){background:var(--purple);right:-14vmax;top:8vmax;animation-delay:-6s}
+.aurora i:nth-child(3){background:var(--pink);left:30vw;bottom:-26vmax;opacity:.16;animation-delay:-11s}
+@keyframes drift{to{transform:translate(6vmax,5vmax) scale(1.15)}}
+.app{width:min(1180px,94vw);margin:auto;padding:26px 0 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:50px;height:50px;border-radius:17px;display:grid;place-items:center;font-size:26px;background:linear-gradient(135deg,var(--cyan),var(--purple));box-shadow:0 0 38px rgba(100,232,255,.3)}
+.brand h1{font-size:22px;margin:0;font-weight:800;background:linear-gradient(90deg,var(--cyan),var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand p{font-size:12px;color:var(--muted);margin:3px 0 0}
+.right{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.status,.ig{display:flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:999px;font-size:12px;color:var(--muted)}
+.ig{color:var(--text);text-decoration:none;font-weight:800;transition:.25s}
+.ig:hover{transform:translateY(-2px);border-color:var(--pink);box-shadow:0 0 22px rgba(255,111,145,.3)}
+.ig svg,.creator svg{stroke:url(#igGrad)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 12px var(--yellow)}.dot.on{background:var(--green);box-shadow:0 0 12px var(--green)}
+.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.8fr);gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.camera-card{padding:14px}
+.camera{position:relative;overflow:hidden;border-radius:20px;background:#020308;min-height:260px;box-shadow:0 0 0 1px rgba(100,232,255,.2),0 0 50px rgba(157,124,255,.15)}
+#video{display:none}#canvas{width:100%;height:auto;display:block;background:#000}
+.overlay{position:absolute;left:16px;right:16px;top:16px;display:flex;justify-content:space-between;pointer-events:none}
+.pill{padding:7px 11px;border-radius:999px;background:rgba(5,7,15,.66);color:#fff;border:1px solid rgba(255,255,255,.12);font-size:11px;font-weight:600;backdrop-filter:blur(10px)}
+.corner{position:absolute;width:26px;height:26px;border-color:var(--cyan);opacity:.85}
+.c1{left:12px;top:12px;border-left:2px solid;border-top:2px solid}.c2{right:12px;top:12px;border-right:2px solid;border-top:2px solid}.c3{left:12px;bottom:12px;border-left:2px solid;border-bottom:2px solid}.c4{right:12px;bottom:12px;border-right:2px solid;border-bottom:2px solid}
+.result{margin-top:12px;padding:17px 20px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:15px}
+.result small{display:block;color:var(--muted);font-size:11px;letter-spacing:.1em;margin-bottom:5px}
+#output_text{font-size:clamp(20px,4vw,32px);font-weight:800}
+.conf{font-size:13px;color:var(--green);white-space:nowrap}
+.side{padding:20px}.side h2{font-size:16px;margin:0 0 14px}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.metric{padding:12px 13px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.metric span{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.metric b{display:block;margin-top:5px;font-size:19px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:16px}
+button{border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--text);border-radius:14px;padding:11px 10px;font:700 12px inherit;font-family:inherit;cursor:pointer;transition:.2s}
+button:hover{transform:translateY(-2px);background:rgba(255,255,255,.13)}
+button.primary{grid-column:1/-1;background:linear-gradient(135deg,#24bdd8,#8064e9);border:0;color:#fff}
+.slider{margin-top:14px;padding:13px;border:1px solid var(--line);border-radius:16px}
+.slider label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:8px}
+input[type=range]{width:100%;accent-color:var(--cyan)}
+.feature-grid{display:grid;grid-template-columns:1fr;gap:9px;margin-top:14px}
+.feature{padding:12px 14px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:.2s}
+.feature:hover{border-color:rgba(100,232,255,.4)}
+.feature b{font-size:13px}.feature small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.switch{position:relative;width:44px;height:24px;flex:none}.switch input{display:none}
+.switch span{position:absolute;inset:0;border-radius:999px;background:#3a4058;cursor:pointer}
+.switch span:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}
+.switch input:checked+span{background:linear-gradient(90deg,var(--cyan),var(--purple))}.switch input:checked+span:before{transform:translateX(20px)}
+.camera-mode{display:flex;gap:8px;margin-top:12px}.camera-mode button{flex:1;font-size:11px}
+.history{margin-top:16px}.history-title{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:7px}
+#history{max-height:130px;overflow:auto;font-size:11px;color:var(--muted)}
+.history-item{padding:8px 10px;margin-bottom:5px;border-radius:11px;background:rgba(255,255,255,.05);color:var(--text)}.history-item span{color:var(--muted);float:right}
+.tip{margin-top:14px;padding:12px;border-radius:14px;background:rgba(100,232,255,.06);border:1px solid rgba(100,232,255,.15);font-size:11px;line-height:1.55;color:var(--muted)}
+.creator{margin:22px auto 0;width:max-content;max-width:100%;display:flex;align-items:center;gap:12px;padding:12px 20px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--text);text-decoration:none;font-size:13px}
+.creator b{background:linear-gradient(90deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.creator:hover{box-shadow:0 0 30px rgba(214,41,118,.35)}
+#permission-screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:22px;background:radial-gradient(circle at 50% 35%,rgba(100,232,255,.14),transparent 38%),#060812}
+.permission-card{width:min(440px,100%);padding:32px;border-radius:30px;text-align:center}
+.permission-icon{width:78px;height:78px;margin:0 auto 17px;border-radius:26px;display:grid;place-items:center;font-size:36px;background:linear-gradient(135deg,rgba(100,232,255,.2),rgba(157,124,255,.25));border:1px solid var(--line);animation:float 3s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-7px)}}
+.permission-card h2{margin:0 0 8px;font-size:26px}.permission-card p{color:var(--muted);line-height:1.6;font-size:13px}
+.permission-actions{display:flex;gap:9px;margin-top:20px}.permission-actions button{flex:1}
+#denied-msg{color:#ff9db2;display:none;font-size:12px;margin-top:14px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;pointer-events:none;padding:11px 16px;border-radius:999px;background:#171c31;color:#fff;border:1px solid var(--line);font-size:12px;transition:.3s;z-index:50;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.side{padding:16px}.app{width:96vw;padding-top:16px}}
+@media(max-width:480px){.brand h1{font-size:18px}.result{align-items:flex-start;flex-direction:column}.permission-card{padding:24px}}
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="igGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".4" stop-color="#d62976"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient><symbol id="ig" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r=".6"/></symbol></defs></svg>
+
+<div id="permission-screen">
+  <div class="permission-card card">
+    <div class="permission-icon">🖐️</div>
+    <h2>GestureAI</h2>
+    <p>Kamera digunakan untuk mendeteksi jari, gesture tangan, ekspresi wajah, dan orang secara real-time. Video diproses langsung di perangkatmu dan tidak diunggah.</p>
+    <div class="permission-actions">
+      <button onclick="cancelApp()">Tidak</button>
+      <button class="primary" onclick="startApp()">Iya, Aktifkan Kamera</button>
+    </div>
+    <div id="denied-msg"></div>
+  </div>
+</div>
+
+<main class="app">
+<header>
+  <div class="brand">
+    <div class="logo">✋</div>
+    <div><h1>GestureAI</h1><p>Smart AI Tracker • MediaPipe Tasks Vision</p></div>
+  </div>
+  <div class="right">
+    <a class="ig" href="https://instagram.com/06_rissrama" target="_blank" rel="noopener"><svg width="18" height="18"><use href="#ig"/></svg>@06_rissrama</a>
+    <div class="status"><i class="dot" id="statusDot"></i><span id="statusText">Menunggu kamera</span></div>
+  </div>
+</header>
+
+<div class="layout">
+<section class="card camera-card">
+  <div class="camera" id="cameraBox">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <div class="overlay"><div class="pill" id="fpsBadge">FPS —</div><div class="pill" id="handBadge">NO HAND</div></div>
+    <div class="pill" id="eventBadge" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;transition:.2s;font-size:20px;padding:12px 20px"></div>
+    <i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i>
+  </div>
+  <div class="result">
+    <div><small>GESTURE TERDETEKSI</small><div id="output_text">Menunggu kamera…</div></div>
+    <div class="conf" id="confidenceText">—</div>
+  </div>
+</section>
+
+<aside class="card side">
+  <h2>Live Dashboard</h2>
+  <div class="metrics">
+    <div class="metric"><span>Jari</span><b id="fingerStat">—</b></div>
+    <div class="metric"><span>Tangan</span><b id="sideStat">—</b></div>
+    <div class="metric"><span>Confidence</span><b id="confidenceStat">—</b></div>
+    <div class="metric"><span>FPS</span><b id="fpsStat">—</b></div>
+    <div class="metric"><span>Ekspresi</span><b id="expStat">—</b></div>
+    <div class="metric"><span>Orang lewat</span><b id="personStat">0</b></div>
+  </div>
+
+  <div class="controls">
+    <button class="primary" onclick="toggleVoice()" id="voiceBtn">🔊 Suara Aktif</button>
+    <button onclick="flipCamera()">🔄 Balik Kamera</button>
+    <button onclick="takeSnapshot()">📸 Foto</button>
+    <button onclick="toggleFullscreen()">⛶ Fullscreen</button>
+    <button onclick="toggleTheme()">◐ Tema</button>
+    <button onclick="clearDraw()">🧹 Hapus Gambar</button>
+    <button onclick="resetPeople()">↺ Reset Orang</button>
+  </div>
+
+  <div class="slider">
+    <label><span>Kecepatan suara</span><b id="rateValue">1.0×</b></label>
+    <input id="rateSlider" type="range" min=".5" max="1.8" step=".1" value="1">
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature"><div><b>😊 Ekspresi Wajah</b><small>senang • marah • cemberut • senyum • ngakak</small></div><label class="switch"><input id="faceToggle" type="checkbox"><span></span></label></div>
+    <div class="feature"><div><b>✍️ Gambar Tangan</b><small>acungkan telunjuk saja untuk menggambar</small></div><label class="switch"><input id="drawToggle" type="checkbox"><span></span></label></div>
+    <div class="feature"><div><b>👐 2 Tangan</b><small>hitung total jari 1–10</small></div><label class="switch"><input id="twoHandToggle" type="checkbox" checked><span></span></label></div>
+    <div class="feature"><div><b>🧍 Penghitung Orang</b><small>deteksi tubuh • hitung yang melewati garis tengah</small></div><label class="switch"><input id="personToggle" type="checkbox"><span></span></label></div>
+  </div>
+  <div class="camera-mode"><button onclick="setCameraMode('user')">🤳 Kamera Depan</button><button onclick="setCameraMode('environment')">📷 Kamera Belakang</button></div>
+
+  <div class="history">
+    <div class="history-title"><span>RIWAYAT GESTURE</span><button style="padding:4px 9px;font-size:10px" onclick="clearHistory()">Hapus</button></div>
+    <div id="history">Belum ada gesture.</div>
+  </div>
+  <div class="tip">💡 <b>Tips:</b> gunakan cahaya cukup, posisikan tangan di tengah kamera, dan hindari gerakan terlalu cepat agar tracking lebih stabil.</div>
+</aside>
+</div>
+
+<a class="creator" href="https://instagram.com/06_rissrama" target="_blank" rel="noopener"><svg width="24" height="24"><use href="#ig"/></svg><span>Dibuat oleh <b>@06_rissrama</b></span></a>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import {FilesetResolver,HandLandmarker,FaceLandmarker,ObjectDetector} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+const $=id=>document.getElementById(id);
+const video=$('video'),canvas=$('canvas'),ctx=canvas.getContext('2d');
+const WASM="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm",MD="https://storage.googleapis.com/mediapipe-models/";
+let stream=null,hl=null,fl=null,od=null,fileset=null,running=false,voice=true,facingMode='user',mirror=true;
+let lastSpoken=-1,stable=-1,stableFrames=0,lastFrame=performance.now(),frames=0,historyData=[];
+let W=640,H=480,lastVid=-1,faceRes=null,lastFace=0,lastObj=0,expSt='',expFrames=0,lastExp='';
+let tracks=[],nextId=1,personCount=0,strokes=[],curs=[null,null],ac;
+const X=x=>(mirror?1-x:x)*W,Y=y=>y*H,D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),2300)}
+function setStatus(text,on=false){$('statusText').textContent=text;$('statusDot').classList.toggle('on',on)}
+function speak(text){if(!voice||!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='id-ID';u.rate=+$('rateSlider').value;u.pitch=1;speechSynthesis.speak(u)}
+function beep(f=660,d=.12){if(!voice)return;try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=.07;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+$('rateSlider').oninput=()=>$('rateValue').textContent=(+$('rateSlider').value).toFixed(1)+'×';
+function showEvent(t){const e=$('eventBadge');e.textContent=t;e.style.opacity=1;clearTimeout(window._ev);window._ev=setTimeout(()=>e.style.opacity=0,900)}
+
+async function requestCamera(){
+  if(!window.isSecureContext)throw new Error('SECURE_CONTEXT');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('NO_MEDIA');
+  const s=await navigator.mediaDevices.getUserMedia({video:{facingMode,width:{ideal:640},height:{ideal:480}},audio:false});
+  s.getTracks().forEach(t=>t.stop());
+}
+function friendlyError(e){
+  if(e.name==='NotAllowedError')return 'Izin kamera ditolak. Buka ikon gembok di Chrome → Kamera → Izinkan.';
+  if(e.name==='NotFoundError')return 'Kamera tidak ditemukan.';
+  if(e.name==='NotReadableError')return 'Kamera sedang dipakai aplikasi lain.';
+  if(e.message==='SECURE_CONTEXT')return 'Chrome memerlukan HTTPS atau localhost untuk akses kamera.';
+  if(e.message==='NO_MEDIA')return 'Browser ini tidak mendukung akses kamera.';
+  return 'Kamera atau model AI gagal dimuat. Periksa internet lalu muat ulang halaman.';
+}
+async function startApp(){
+  $('denied-msg').style.display='block';$('denied-msg').style.color='#9da6c4';
+  $('denied-msg').textContent='Memeriksa izin kamera…';setStatus('Memeriksa kamera');
+  try{await requestCamera();$('permission-screen').style.display='none';setStatus('Mengaktifkan AI…');initAI()}
+  catch(e){console.error(e);$('denied-msg').style.color='#ff9db2';$('denied-msg').textContent='⚠️ '+friendlyError(e);setStatus('Kamera belum aktif')}
+}
+function cancelApp(){
+  $('denied-msg').style.display='block';$('denied-msg').style.color='#9da6c4';
+  $('denied-msg').textContent='Akses kamera dibatalkan. Tekan “Iya, Aktifkan Kamera” jika ingin mencoba lagi.';setStatus('Kamera tidak diaktifkan');
+}
+
+/* ===== Model AI (MediaPipe Tasks Vision, real-time di browser) ===== */
+async function mk(Cls,path,opts){
+  fileset=fileset||await FilesetResolver.forVisionTasks(WASM);
+  const o={baseOptions:{modelAssetPath:MD+path,delegate:'GPU'},runningMode:'VIDEO',...opts};
+  try{return await Cls.createFromOptions(fileset,o)}catch(e){o.baseOptions.delegate='CPU';return await Cls.createFromOptions(fileset,o)}
+}
+async function openStream(){
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode,width:{ideal:640},height:{ideal:480}},audio:false});
+  video.srcObject=stream;await video.play();
+  W=canvas.width=video.videoWidth||640;H=canvas.height=video.videoHeight||480;lastVid=-1;
+}
+async function initAI(){
+  try{
+    setStatus('Memuat model AI…');
+    hl=await mk(HandLandmarker,'hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',{numHands:$('twoHandToggle').checked?2:1,minHandDetectionConfidence:.6,minHandPresenceConfidence:.6,minTrackingConfidence:.6});
+    await openStream();running=true;
+    setStatus('Kamera aktif',true);$('output_text').textContent='Tunjukkan tanganmu';
+    speak('Kamera aktif. Silakan tunjukkan tangan anda.');loop();
+  }catch(e){console.error(e);setStatus('Gagal mengaktifkan');toast(friendlyError(e))}
+}
+function loop(){
+  if(!running)return;requestAnimationFrame(loop);
+  if(video.readyState<2||video.currentTime===lastVid)return;lastVid=video.currentTime;
+  const t=performance.now();
+  try{
+    const hr=hl.detectForVideo(video,t);
+    if(fl&&$('faceToggle').checked&&t-lastFace>50){lastFace=t;faceRes=fl.detectForVideo(video,t)}
+    if(od&&$('personToggle').checked&&t-lastObj>90){lastObj=t;track(od.detectForVideo(video,t).detections)}
+    onResults({image:video,multiHandLandmarks:hr.landmarks,multiHandedness:hr.handedness.map(h=>({label:h[0].categoryName==='Left'?'Right':'Left',score:h[0].score}))});
+  }catch(e){console.error(e)}
+}
+
+/* ===== Hitung jari (rotasi-invarian, tidak tergantung sisi tangan/mirror) ===== */
+function fingers(l){
+  const s=D(l[0],l[9])||1,f=[D(l[4],l[17])>D(l[3],l[17])&&D(l[4],l[5])>.55*s];
+  [[8,6],[12,10],[16,14],[20,18]].forEach(([t,p])=>f.push(D(l[t],l[0])>D(l[p],l[0])*1.1));
+  return f;
+}
+function countFingers(l,h){return fingers(l).filter(Boolean).length}
+function gesture(n){
+  const m={0:['Kepalan tangan ✊','Nol jari'],1:['Hai 👋','Hai'],2:['Peace ✌️','Apa kabar?'],3:['Luar biasa 🤟','Luar biasa!'],4:['Tetap semangat 🖖','Tetap semangat!'],5:['Sampai jumpa 🖐️','Sampai jumpa!']};
+  const w=['nol','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan','sepuluh'];
+  return m[n]||(n>=6&&n<=10?['Angka '+n+' 🙌','Angka '+w[n]]:['Gesture tidak dikenali','Gesture tidak dikenali']);
+}
+
+/* ===== Gambar mengikuti telunjuk ===== */
+function pen(l,i){
+  const f=fingers(l);
+  if(!$('drawToggle').checked||!(f[1]&&!f[2]&&!f[3]&&!f[4])){curs[i]=null;return}
+  const p=l[8],q=curs[i]&&curs[i].pts[curs[i].pts.length-1],pt=q?{x:q.x*.5+p.x*.5,y:q.y*.5+p.y*.5}:{x:p.x,y:p.y};
+  if(!curs[i]||Math.hypot(pt.x-q.x,pt.y-q.y)>.15){curs[i]={pts:[],h:(strokes.length*37)%360};strokes.push(curs[i]);if(strokes.length>80)strokes.shift()}
+  curs[i].pts.push(pt);
+}
+function drawStrokes(){
+  if(!$('drawToggle').checked)return;
+  ctx.save();ctx.lineCap=ctx.lineJoin='round';ctx.lineWidth=Math.max(4,W/120);ctx.shadowBlur=14;
+  strokes.forEach(s=>{ctx.strokeStyle=ctx.shadowColor=`hsl(${s.h},100%,65%)`;ctx.beginPath();s.pts.forEach((p,i)=>i?ctx.lineTo(X(p.x),Y(p.y)):ctx.moveTo(X(p.x),Y(p.y)));ctx.stroke()});
+  ctx.restore();
+}
+function clearDraw(){strokes=[];curs=[null,null];toast('🧹 Gambar dihapus')}
+
+/* ===== Ekspresi wajah (blendshape FaceLandmarker) ===== */
+function expr(o){
+  const g=k=>o[k]||0,sm=(g('mouthSmileLeft')+g('mouthSmileRight'))/2,jaw=g('jawOpen'),fr=(g('mouthFrownLeft')+g('mouthFrownRight'))/2,br=(g('browDownLeft')+g('browDownRight'))/2,sq=(g('eyeSquintLeft')+g('eyeSquintRight'))/2,pu=g('mouthPucker');
+  if(sm>.5&&jaw>.35)return['Wajah ngakak 😂','Wajah ngakak',1];
+  if(br>.45&&sm<.25)return['Wajah marah 😠','Wajah marah',2];
+  if((fr>.25||pu>.5)&&sm<.2)return['Wajah cemberut 😗','Wajah cemberut',3];
+  if(sm>.55||(sm>.4&&sq>.3))return['Wajah senang 😊','Wajah senang',4];
+  if(sm>.25)return['Wajah senyum 😄','Wajah senyum',5];
+  return['Wajah netral 😐','Wajah netral',0];
+}
+function drawFace(){
+  const on=$('faceToggle').checked,l=on&&faceRes&&faceRes.faceLandmarks&&faceRes.faceLandmarks[0];
+  if(!l||!faceRes.faceBlendshapes||!faceRes.faceBlendshapes[0]){$('expStat').textContent='—';return}
+  const o={};faceRes.faceBlendshapes[0].categories.forEach(c=>o[c.categoryName]=c.score);
+  const e=expr(o);
+  if(e[0]===expSt)expFrames++;else{expSt=e[0];expFrames=1}
+  if(expFrames>=3&&expSt!==lastExp){lastExp=expSt;$('expStat').textContent=e[0].replace('Wajah ','');if(e[2]){speak(e[1]);beep(300+e[2]*130);showEvent(e[0])}}
+  let a=1,b=1,c=0,d=0;l.forEach(p=>{a=Math.min(a,p.x);b=Math.min(b,p.y);c=Math.max(c,p.x);d=Math.max(d,p.y)});
+  const x1=Math.min(X(a),X(c)),x2=Math.max(X(a),X(c)),y1=Y(b),y2=Y(d);
+  ctx.save();ctx.strokeStyle='#9d7cff';ctx.lineWidth=3;ctx.shadowColor='#9d7cff';ctx.shadowBlur=12;ctx.strokeRect(x1,y1,x2-x1,y2-y1);
+  ctx.shadowBlur=0;ctx.font='bold 18px sans-serif';const tw=ctx.measureText(e[0]).width+20;
+  ctx.fillStyle='rgba(15,18,38,.85)';ctx.fillRect(x1,Math.max(0,y1-34),tw,30);ctx.fillStyle='#fff';ctx.fillText(e[0],x1+10,Math.max(22,y1-12));ctx.restore();
+}
+
+/* ===== Penghitung orang (ObjectDetector + centroid tracker + garis tengah) ===== */
+function track(dets){
+  const now=performance.now(),used=new Set();
+  dets.forEach(d=>{
+    const b=d.boundingBox,cx=(b.originX+b.width/2)/W,cy=(b.originY+b.height/2)/H;let best=null,bd=.22;
+    tracks.forEach(t=>{if(used.has(t))return;const dd=Math.hypot(t.cx-cx,t.cy-cy);if(dd<bd){bd=dd;best=t}});
+    if(!best){best={id:nextId++,side:cx<.5?0:1,counted:false};tracks.push(best)}
+    used.add(best);const s=cx<.45?0:cx>.55?1:best.side;
+    if(s!==best.side&&!best.counted){best.counted=true;personCount++;$('personStat').textContent=personCount;beep(880,.15);toast('🧍 Orang ke-'+personCount+' lewat')}
+    best.side=s;best.cx=cx;best.cy=cy;best.seen=now;best.box=b;
+  });
+  tracks=tracks.filter(t=>now-t.seen<1200);
+}
+function drawPeople(){
+  if(!$('personToggle').checked)return;
+  ctx.save();ctx.setLineDash([10,8]);ctx.strokeStyle='rgba(255,229,107,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+  ctx.font='bold 15px sans-serif';
+  tracks.forEach(t=>{if(performance.now()-t.seen>300)return;const b=t.box,x=mirror?W-b.originX-b.width:b.originX;
+    ctx.strokeStyle=t.counted?'#62e6a8':'#64e8ff';ctx.lineWidth=3;ctx.strokeRect(x,b.originY,b.width,b.height);
+    ctx.fillStyle=ctx.strokeStyle;ctx.fillRect(x,Math.max(0,b.originY-22),74,22);ctx.fillStyle='#04121a';ctx.fillText('Orang #'+t.id,x+6,Math.max(16,b.originY-6))});
+  ctx.fillStyle='rgba(5,7,15,.7)';ctx.fillRect(10,H-40,190,30);ctx.fillStyle='#ffe56b';ctx.font='bold 16px sans-serif';ctx.fillText('Total lewat: '+personCount,20,H-19);ctx.restore();
+}
+function resetPeople(){personCount=0;tracks=[];$('personStat').textContent=0;toast('↺ Hitungan orang direset')}
+
+/* ===== Render per frame ===== */
+function onResults(r){
+ ctx.save();ctx.clearRect(0,0,W,H);
+ if(mirror){ctx.translate(W,0);ctx.scale(-1,1)}
+ ctx.drawImage(r.image,0,0,W,H);ctx.restore();
+ frames++;const now=performance.now();
+ if(now-lastFrame>=1000){$('fpsBadge').textContent='FPS '+frames;$('fpsStat').textContent=frames;frames=0;lastFrame=now}
+ drawPeople();drawFace();drawStrokes();
+ const L=r.multiHandLandmarks||[];
+ if(!$('faceToggle').checked)$('expStat').textContent='—';
+ if(L.length){
+  const two=$('twoHandToggle').checked,hs=two?L.slice(0,2):L.slice(0,1);
+  const counts=hs.map((l,i)=>countFingers(l,r.multiHandedness[i].label)),n=counts.reduce((a,b)=>a+b,0);
+  const labels=hs.map((l,i)=>r.multiHandedness[i].label),score=hs.reduce((a,l,i)=>a+r.multiHandedness[i].score,0)/hs.length;
+  const lw=Math.max(3,W/160);
+  hs.forEach((l,i)=>{
+   ctx.save();ctx.strokeStyle='#64e8ff';ctx.lineWidth=lw;ctx.lineCap='round';ctx.shadowColor='#64e8ff';ctx.shadowBlur=8;
+   HandLandmarker.HAND_CONNECTIONS.forEach(c=>{ctx.beginPath();ctx.moveTo(X(l[c.start].x),Y(l[c.start].y));ctx.lineTo(X(l[c.end].x),Y(l[c.end].y));ctx.stroke()});
+   ctx.shadowBlur=0;ctx.fillStyle='#ff6f91';l.forEach(p=>{ctx.beginPath();ctx.arc(X(p.x),Y(p.y),lw*1.1,0,7);ctx.fill()});ctx.restore();
+   pen(l,i);
+  });
+  if(hs.length<2)curs[1]=null;
+  $('handBadge').textContent=labels.map(x=>x.toUpperCase()).join(' + ');$('fingerStat').textContent=n;
+  $('sideStat').textContent=labels.join(' + ');$('confidenceStat').textContent=(score*100).toFixed(0)+'%';$('confidenceText').textContent='● '+(score*100).toFixed(1)+'% confidence';
+  if(n===stable)stableFrames++;else{stable=n;stableFrames=1}
+  if(stableFrames>=5){
+   const [display,speech]=gesture(n);$('output_text').textContent=display;
+   if(n!==lastSpoken){speak(speech);addHistory(display,n);lastSpoken=n}
+  }
+ }else{
+  curs=[null,null];
+  $('handBadge').textContent='NO HAND';$('fingerStat').textContent='—';$('sideStat').textContent='—';$('confidenceStat').textContent='—';$('confidenceText').textContent='—';$('output_text').textContent='Tangan tidak terdeteksi';lastSpoken=-1;stable=-1;stableFrames=0;
+ }
+}
+function addHistory(text,n){
+ const time=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+ historyData.unshift({text,n,time});historyData=historyData.slice(0,12);
+ $('history').innerHTML=historyData.map(x=>`<div class="history-item">🖐️ ${x.text}<span>${x.time}</span></div>`).join('');
+}
+function clearHistory(){historyData=[];$('history').textContent='Belum ada gesture.'}
+function toggleVoice(){voice=!voice;$('voiceBtn').textContent=voice?'🔊 Suara Aktif':'🔇 Suara Mati';if(!voice)speechSynthesis.cancel();else speak('Suara aktif')}
+async function switchCam(){
+  if(!running)return;setStatus('Mengganti kamera…');
+  try{await openStream();setStatus('Kamera aktif',true);toast(facingMode==='user'?'🤳 Kamera depan':'📷 Kamera belakang')}
+  catch(e){console.error(e);toast(friendlyError(e));setStatus('Gagal mengganti kamera')}
+}
+function setCameraMode(mode){facingMode=mode;mirror=mode==='user';strokes=[];switchCam()}
+function flipCamera(){setCameraMode(facingMode==='user'?'environment':'user')}
+function takeSnapshot(){const a=document.createElement('a');a.download='gestureai-'+Date.now()+'.png';a.href=canvas.toDataURL('image/png');a.click();toast('📸 Foto berhasil disimpan')}
+function toggleFullscreen(){const el=$('cameraBox');if(!document.fullscreenElement)el.requestFullscreen?.();else document.exitFullscreen?.()}
+function toggleTheme(){document.body.classList.toggle('light');toast(document.body.classList.contains('light')?'☀️ Mode terang aktif':'🌙 Mode gelap aktif')}
+
+/* ===== Toggle fitur (model dimuat saat pertama kali diaktifkan) ===== */
+$('faceToggle').onchange=async()=>{
+  const on=$('faceToggle').checked;faceRes=null;
+  if(on&&!fl){toast('Memuat model wajah…');try{fl=await mk(FaceLandmarker,'face_landmarker/face_landmarker/float16/1/face_landmarker.task',{numFaces:1,outputFaceBlendshapes:true,minFaceDetectionConfidence:.6,minTrackingConfidence:.6})}catch(e){console.error(e);$('faceToggle').checked=false;return toast('Model wajah gagal dimuat')}}
+  toast(on?'😊 Deteksi wajah aktif':'😊 Deteksi wajah mati');
+};
+$('drawToggle').onchange=()=>{strokes=[];curs=[null,null];toast($('drawToggle').checked?'✍️ Tracking gambar aktif':'✍️ Tracking gambar mati')};
+$('twoHandToggle').onchange=async()=>{if(hl)await hl.setOptions({numHands:$('twoHandToggle').checked?2:1});lastSpoken=-1;stable=-1;toast($('twoHandToggle').checked?'👐 Tracking 2 tangan aktif':'👐 Tracking 2 tangan mati')};
+$('personToggle').onchange=async()=>{
+  const on=$('personToggle').checked;tracks=[];
+  if(on&&!od){toast('Memuat model deteksi orang…');try{od=await mk(ObjectDetector,'object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite',{scoreThreshold:.45,categoryAllowlist:['person'],maxResults:8})}catch(e){console.error(e);$('personToggle').checked=false;return toast('Model deteksi orang gagal dimuat')}}
+  toast(on?'🧍 Penghitung orang aktif':'🧍 Penghitung orang mati');
+};
+Object.assign(window,{startApp,cancelApp,toggleVoice,flipCamera,takeSnapshot,toggleFullscreen,toggleTheme,clearHistory,setCameraMode,clearDraw,resetPeople});
+</script>
+</body>
+</html>
